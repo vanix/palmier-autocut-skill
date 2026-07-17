@@ -147,7 +147,9 @@ Step 7b. 逐段檢視素材，決定保留範圍：
             - 風景過場（走路、搭車）若太長可只留 2-3 秒
             - 拍糊、鏡頭蓋、晃到無法看的 → 直接跳過
          d) 決定每支素材的入點（trim in）：
-            e.g., VID_143000.mp4 前 5 秒都在調整鏡頭 → startFrame=150
+            e.g., VID_143000.mp4 前 5 秒都在調整鏡頭
+            → 上片時用 source=[5, endSec] 跳過前 5 秒（素材時間軸）
+            ⚠️ 不是 timeline 的 startFrame（那是放的位置，不是來源裁切）
          - 可能只保留 30-60% 的素材，剪成精華版
 ```
 
@@ -185,7 +187,7 @@ Step 10. 粗剪 — 移除頭尾多餘段落：
          - 每支素材結尾：移除講完話後的尷尬停頓
          - 中間廢話：離題或無意義的段落直接剪掉
 
-Step 11.  check_clips()：get_timeline() 確認 clip 位置正確
+Step 11.  get_timeline() → 確認 clip 位置正確
 
 Step 12. remove_silence()  ← 強制執行
          → 刪除句間 >1s 靜音，ripple close gaps
@@ -243,18 +245,24 @@ Step 21. 2 秒淡入淡出（以 30fps 為例，60 frames = 2 秒）：
          set_keyframes(clipId="<BGM_clipId>", property="volume",
            keyframes=[[0, 0], [60, 0.1], [end-60, 0.1], [end, 0]])
 
-Step 22. 音樂太短 → 重複加同一首歌（loop）
+Step 22. 音樂太短 → 將同一首歌重複加多次（loop）：
+         用同一個 mediaRef 連續 add_clips，每段 startFrame 接續前一段的 endFrame
+         e.g., 歌曲 30 秒（900 frames），章節要 75 秒（2250 frames）
+         → add_clips 三筆：0→900, 900→1800, 1800→2250
 
 Step 23. BGM tail 裁切 — 避免尾段黑畫面+音樂：
-         timeline = get_timeline()
-         total = timeline["totalFrames"]
-         for each BGM clip:
-           clip_end = clipStartFrame + clipDuration
-           if clip_end > total:
-             set_clip_properties(
-               clipIds=["<BGM_clipId>"],
-               durationFrames=total - clipStartFrame
-             )
+         # get_timeline() 的 totalFrames = 影片實際長度
+         # BGM clip 的 frames 常超出此值，須手動裁切
+         # clip 格式：{start, end, id, ...}，end 為 exclusive
+         tl = get_timeline()
+         total = tl["totalFrames"]
+         for t in tl["tracks"]:
+           for c in t.get("clips", []):
+             if c["end"] > total:
+               set_clip_properties(
+                 clipIds=[c["id"]],
+                 durationFrames=total - c["start"]
+               )
 
 Step 24. BGM 一旦定位後，不可再對 timeline 執行任何 ripple 操作
          （remove_silence、ripple_delete_ranges、insert_clips），
@@ -286,14 +294,27 @@ Step 25. 確認 ffmpeg 可用：
          which ffmpeg || which ffprobe || (brew install ffmpeg)
 
 Step 26. 從 silence-removed 後的 timeline 提取音訊：
-         # 先 export 一段臨時影片（低解析度節省時間）
-         export_result = export_project(
+         # export 影片是非同步的（背景跑），需要輪詢等待完成
+         temp_video = "<TEMP_DIR>/_temp_audio_source.mp4"
+         export_project(
            mode="video", codec="H.264", resolution="720p",
-           outputPath="<TEMP_DIR>/_temp_audio_source.mp4"
+           outputPath=temp_video
          )
-         # 從臨時檔抽音訊
+         # 輪詢等待 export 完成（檔案出現且大小不再變動）
+         import time, os
+         while not os.path.exists(temp_video) or os.path.getsize(temp_video) < 1024:
+             time.sleep(2)
+         prev_size = -1
+         while prev_size != os.path.getsize(temp_video):
+             prev_size = os.path.getsize(temp_video)
+             time.sleep(3)
+         
+         # 從完成的臨時檔抽音訊
          ffmpeg -y -i "<TEMP_DIR>/_temp_audio_source.mp4" \
            -vn -ar 16000 -ac 1 "<TEMP_DIR>/audio.wav"
+         
+         # 清理臨時影片
+         os.remove(temp_video)
          
          ⚠️ <TEMP_DIR> = Q2 的素材路徑 + /temp/
          ⚠️ 不可從原始素材抽音訊（未反映 silence removal，frame 會偏移）
@@ -572,6 +593,8 @@ result = generate_video(
 
 ## 經驗教訓（實戰累積）
 
+> ⚠️ 以下教訓已整合至上方各 Phase 的 SOP 中，此處為快速回顧。
+
 以下為實際剪片專案中歸納的注意事項：
 
 | # | 教訓 | 說明 |
@@ -603,7 +626,7 @@ result = generate_video(
 | remove_silence | 靜音刪除 |
 | get_transcript / update_text | 逐字稿 / 字幕修正 |
 | add_texts | 字幕／標題文字匯入 |
-| mlx_whisper / openai-whisper CLI | 外部轉錄（取代 add_captions） |
+| mlx_whisper / whisper CLI | 外部轉錄（取代 add_captions） |
 | apply_color / apply_effect / inspect_color | 調色/特效 |
 | generate_video / generate_image / generate_audio | AI 生成 |
 | export_project | 輸出 |
