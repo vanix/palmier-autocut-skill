@@ -45,7 +45,7 @@ pip install openai-whisper # CPU 備用
 |:----:|:-----|:----:|:----|
 | ANS_1 | 影片主題？ | — | 專案名稱、輸出檔名 |
 | ANS_2 | 素材資料夾？ | — | import、輸出/暫存路徑 |
-| ANS_3 | 剪輯風格？ | 流水帳 | 決定走 A 或 B |
+| ANS_3 | 剪輯風格？（A:流水帳/B:AI挑重點/C:自訂腳本） | 流水帳 | 決定走 A、B 或 C |
 | ANS_4 | 主要語言？ | zh-TW | Whisper `--language` |
 | ANS_5 | 比例與解析度？ | 16:9 1080p | new_project |
 | ANS_6 | 音樂需求？（B 限） | — | BGM 選擇 |
