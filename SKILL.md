@@ -626,7 +626,7 @@ result = generate_video(
 | remove_silence | 靜音刪除 |
 | get_transcript / update_text | 逐字稿 / 字幕修正 |
 | add_texts | 字幕／標題文字匯入 |
-| mlx_whisper / whisper CLI | 外部轉錄（取代 add_captions） |
+| `mlx_whisper`（GPU） / `whisper`（CPU 備用） | 外部轉錄（取代 add_captions） |
 | apply_color / apply_effect / inspect_color | 調色/特效 |
 | generate_video / generate_image / generate_audio | AI 生成 |
 | export_project | 輸出 |
