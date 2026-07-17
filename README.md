@@ -76,9 +76,6 @@ pip install openai-whisper # CPU 備用
 
 Whisper 同音字誤判（在→再、因該→應該等），SKILL 內附 Python regex 批次修正腳本 + SRT→JSON 轉換腳本。
 
-## 整合 AI 生成
-
-SKILL 內附 `generate_video`（過場動畫）、`generate_image`（縮圖）、`generate_audio`（配音／配樂）使用範例。
 
 ## 經驗教訓
 

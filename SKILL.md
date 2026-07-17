@@ -568,29 +568,6 @@ Path(srt_path).write_text(content, encoding="utf-8")
 print("Typo fixes applied to", srt_path)
 ```
 
-## 整合 AI 生成素材（選用）
-
-若素材不足或需要特定畫面/音效，可使用 Palmier 內建 AI 工具：
-
-| 工具 | 適用場景 | 備註 |
-|:----:|:---------|:-----|
-| `generate_video` | 過場動畫、空景補鏡 | 需要文字 prompt |
-| `generate_image` | 片頭/片尾縮圖 | 可指定 aspectRatio |
-| `generate_audio(prompt=, model="tts")` | AI 配音／旁白 | 可選聲音 |
-| `generate_audio(prompt=, model="music")` | 配樂生成 | 可指定風格 |
-
-使用方法範例：
-```
-# 生成過場影片
-result = generate_video(
-    prompt="日式庭院空鏡，穩定緩慢橫移，4K",
-    duration=5,
-    aspectRatio="16:9",
-)
-# 取得 mediaRef，待生成完成後用 add_clips 加入時間軸
-# 輪詢：get_media(ids=[result.mediaRef]) 直到 generationStatus 消失
-```
-
 ## 經驗教訓（實戰累積）
 
 > ⚠️ 以下教訓已整合至上方各 Phase 的 SOP 中，此處為快速回顧。
