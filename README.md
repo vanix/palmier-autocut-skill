@@ -41,18 +41,19 @@ pip install mlx-whisper openai-whisper
 剪片，素材在 ~/Desktop/我的影片/，輸出 1080p mp4
 ```
 
-系統會先以互動問卷收集需求（主題、素材路徑、解析度、章節、音樂風格等），全部回答完後自動執行完整流程。
+系統會先以互動問卷收集需求（主題、素材路徑、剪輯風格、解析度、語言、章節音樂、輸出格式等），全部回答完後自動執行完整流程。
 
 ## 工作流程
 
 ```
 Phase 1  初始化          → new_project + import_media
 Phase 2  素材分析         → get_media + inspect_media 分類 A/B-roll
-Phase 3  精選素材         → 逐段檢視，決定保留範圍與入點
-Phase 4  時間軸建構       → add_clips + 粗剪 + remove_silence()
+Phase 3  精選素材         → 流水帳：全上只清明顯廢段
+                          AI挑重點：逐支分析只留精彩片段
+Phase 4  時間軸建構       → add_clips（注意 startFrame 須累積）+ 粗剪 + remove_silence()
 Phase 5  B-roll 覆疊      → 可選，預設跳過
-Phase 6  背景音樂         → 逐章節分軌 + 音量 0.1 + 淡入淡出
-Phase 7  字幕轉錄         → 外部 Whisper → 除幻覺 → 錯字修正 → add_texts
+Phase 6  背景音樂         → 逐章節分軌 + 音量 0.1 + 淡入淡出（注意裁切 BGM tail）
+Phase 7  字幕轉錄         → 外部 Whisper → 除幻覺 → 錯字修正 → add_texts（一次匯入勿分批）
 Phase 8  輸出             → H.264 或 fcpxml
 ```
 
